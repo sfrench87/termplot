@@ -123,7 +123,7 @@ final class TerminalProbe
 
     /**
      * Env fallback when the protocol query is skipped or times out.
-     * Kitty/Ghostty only. WezTerm must not enable the graphics path from env.
+     * TERM_PROGRAM allowlist is kitty and ghostty only.
      */
     private function envSaysKitty(): bool
     {
