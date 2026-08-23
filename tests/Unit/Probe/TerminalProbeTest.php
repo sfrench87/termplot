@@ -66,6 +66,17 @@ final class TerminalProbeTest extends TestCase
         $this->assertNotEmpty($io->writes);
     }
 
+    public function testBareGSubstringIsNotAGraphicsReply(): void
+    {
+        $io = new FakeProbeIo(
+            outputTty: true,
+            inputTty: true,
+            readBuffer: "noise_G_noise\033[?1;2c",
+        );
+        $cap = TerminalProbe::detect('in', 'out', $io);
+        $this->assertFalse($cap->kitty);
+    }
+
     public function testEnvHeuristicWhenQueryInconclusive(): void
     {
         $io = new FakeProbeIo(

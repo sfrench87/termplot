@@ -21,9 +21,24 @@ class EscapeWriter implements EscapeWriterInterface
 
     public function write(string $bytes): void
     {
-        $written = fwrite($this->stream, $bytes);
-        if ($written === false) {
-            throw new \RuntimeException('Failed to write escape sequence to stream');
+        self::writeAll($this->stream, $bytes);
+    }
+
+    /**
+     * Write every byte. {@see fwrite()} may return a short count; 0/false is fatal
+     * so a non-blocking sink cannot spin forever.
+     *
+     * @param resource $stream
+     */
+    public static function writeAll(mixed $stream, string $bytes): void
+    {
+        $remaining = $bytes;
+        while ($remaining !== '') {
+            $n = fwrite($stream, $remaining);
+            if ($n === false || $n === 0) {
+                throw new \RuntimeException('Failed to write escape sequence to stream');
+            }
+            $remaining = substr($remaining, $n);
         }
     }
 

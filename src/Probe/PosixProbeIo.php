@@ -36,7 +36,14 @@ final class PosixProbeIo implements ProbeIoInterface
         if (!is_resource($stream)) {
             return;
         }
-        fwrite($stream, $bytes);
+        $remaining = $bytes;
+        while ($remaining !== '') {
+            $n = fwrite($stream, $remaining);
+            if ($n === false || $n === 0) {
+                throw new \RuntimeException('Failed to write probe bytes to stream');
+            }
+            $remaining = substr($remaining, $n);
+        }
         fflush($stream);
     }
 
@@ -128,7 +135,7 @@ final class PosixProbeIo implements ProbeIoInterface
     {
         $hasDa = (str_contains($buffer, "\033[") && str_ends_with(rtrim($buffer, "\0"), 'c'))
             || (bool) preg_match('/\x1b\[\?[\d;]*c/', $buffer);
-        $hasGraphics = str_contains($buffer, "_G") && str_contains($buffer, "\033\\");
+        $hasGraphics = str_contains($buffer, "\033_G") && str_contains($buffer, "\033\\");
 
         return $hasDa || $hasGraphics;
     }

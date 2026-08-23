@@ -110,7 +110,7 @@ final class TerminalProbe
             return null;
         }
 
-        if (str_contains($response, '_G')) {
+        if (str_contains($response, KittyEncoder::APC_INTRODUCER)) {
             return true;
         }
 
