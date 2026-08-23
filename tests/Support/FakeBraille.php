@@ -12,7 +12,7 @@ final class FakeBraille implements BrailleSparklineInterface
     {
     }
 
-    public function render(array $series, int $width = 40, int $height = 8): string
+    public function render(array $series = [], int $width = 40, int $height = 8): string
     {
         return $this->output;
     }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Termplot\Render;
 
 /**
- * GD Line/Bar rendering is Willow's concern. Core ships a null implementation.
+ * Chart backend for the Kitty path. {@see \Termplot\Render\Gd\GdRenderer} is the default.
  */
 interface ChartRendererInterface
 {
