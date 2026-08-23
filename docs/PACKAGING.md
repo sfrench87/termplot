@@ -2,7 +2,7 @@
 
 Interim Composer name: **`tbd/termplot`** (lowercase in `composer.json`).
 
-Packagist vendor is **TBD**. This package **MUST NOT** be published to Packagist.
+License: **MIT**. Packagist vendor is **TBD**. This package **MUST NOT** be published to Packagist.
 
 Dry-run only:
 

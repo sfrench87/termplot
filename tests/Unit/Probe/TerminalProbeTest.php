@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Termplot\Probe\FakeProbe;
 use Termplot\Probe\FakeProbeIo;
+use Termplot\Probe\PosixProbeIo;
 use Termplot\Probe\ProbeInterface;
 use Termplot\Probe\TerminalProbe;
 use Termplot\Protocol\KittyEncoder;
@@ -15,6 +16,7 @@ use Termplot\Protocol\KittyEncoder;
 #[CoversClass(TerminalProbe::class)]
 #[CoversClass(FakeProbeIo::class)]
 #[CoversClass(FakeProbe::class)]
+#[CoversClass(PosixProbeIo::class)]
 final class TerminalProbeTest extends TestCase
 {
     public function testA5NonTtyIsKittyFalseAndDoesNotHang(): void
@@ -99,6 +101,28 @@ final class TerminalProbeTest extends TestCase
         $cap = TerminalProbe::detect('in', 'out', $io);
         $this->assertTrue($cap->kitty);
         $this->assertSame([], $io->writes, 'no readable TTY stdin → skip protocol query');
+    }
+
+    public function testWezTermEnvAloneDoesNotEnableKitty(): void
+    {
+        $io = new FakeProbeIo(
+            outputTty: true,
+            inputTty: false,
+            env: ['TERM_PROGRAM' => 'WezTerm'],
+        );
+        $cap = TerminalProbe::detect('in', 'out', $io);
+        $this->assertFalse($cap->kitty);
+    }
+
+    public function testProductionWinsizeLeavesPixelsNull(): void
+    {
+        $io = new PosixProbeIo();
+        $stream = fopen('php://memory', 'r+');
+        $this->assertIsResource($stream);
+        $size = $io->winsize($stream);
+        fclose($stream);
+        $this->assertNull($size['pixelWidth']);
+        $this->assertNull($size['pixelHeight']);
     }
 
     public function testFakeProbeIsInjectable(): void

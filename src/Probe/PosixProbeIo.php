@@ -112,6 +112,7 @@ final class PosixProbeIo implements ProbeIoInterface
             }
         }
 
+        // TIOCGWINSZ deferred: never invent pixel size from ioctl.
         return [
             'cols' => $cols,
             'rows' => $rows,

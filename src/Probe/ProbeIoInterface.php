@@ -22,6 +22,9 @@ interface ProbeIoInterface
 
     /**
      * @return array{cols: ?int, rows: ?int, pixelWidth: ?int, pixelHeight: ?int}
+     *
+     * Production {@see PosixProbeIo} leaves pixel sizes null (TIOCGWINSZ deferred).
+     * Tests may inject explicit sizes via fake IO.
      */
     public function winsize(mixed $stream): array;
 }

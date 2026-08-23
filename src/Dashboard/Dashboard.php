@@ -71,6 +71,9 @@ final class Dashboard
     }
 
     /**
+     * Emit one {@see TransmitterInterface::replace()} per named bitmap.
+     * Does not emit CSI CUP; pane chrome and cursor placement are Willow's.
+     *
      * @param array<string, Bitmap> $frames
      */
     public function tick(array $frames): void

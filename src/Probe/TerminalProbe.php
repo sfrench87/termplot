@@ -11,14 +11,11 @@ use Termplot\Protocol\KittyEncoder;
  *
  * 1. Non-TTY → kitty=false (no query, cannot hang).
  * 2. Protocol query preferred (tiny {@code a=q} + Primary DA) with a read deadline.
- * 3. Env heuristics secondary ({@code KITTY_WINDOW_ID}, {@code TERM_PROGRAM}).
+ * 3. Env heuristics secondary ({@code KITTY_WINDOW_ID}, {@code TERM_PROGRAM=kitty|ghostty}).
+ *    WezTerm is D7 caveat-only and does **not** set kitty=true from env alone.
  *
- * Frozen sketch: {@code TerminalProbe::detect(STDIN, STDOUT)}
- *
- * Query IO is mockable via {@see ProbeIoInterface}. The injectable
- * {@see ProbeInterface} seam is {@see FakeProbe} (tests) or a thin wrapper around
- * this static entry point (facade). PHP cannot expose both a static and an
- * instance method named {@code detect()} on the same class.
+ * Frozen sketch: {@code TerminalProbe::detect(STDIN, STDOUT)} wraps {@see PosixProbeIo}.
+ * Tests inject {@see ProbeIoInterface} (3rd argument) so the protocol query never hits a real TTY.
  */
 final class TerminalProbe
 {
@@ -124,6 +121,10 @@ final class TerminalProbe
         return null;
     }
 
+    /**
+     * Env fallback when the protocol query is skipped or times out.
+     * Kitty/Ghostty only. WezTerm must not enable the graphics path from env.
+     */
     private function envSaysKitty(): bool
     {
         if ($this->io->getenv('KITTY_WINDOW_ID') !== null) {
@@ -131,7 +132,7 @@ final class TerminalProbe
         }
 
         $termProgram = strtolower((string) $this->io->getenv('TERM_PROGRAM'));
-        if (in_array($termProgram, ['kitty', 'ghostty', 'wezterm'], true)) {
+        if (in_array($termProgram, ['kitty', 'ghostty'], true)) {
             return true;
         }
 

@@ -47,6 +47,10 @@ final class DashboardTest extends TestCase
         $this->assertSame('-1', $first['keys']['z']);
         $this->assertSame('-1', $second['keys']['z']);
         $this->assertStringNotContainsString('a=d', $rec->concatenated());
+        $this->assertDoesNotMatchRegularExpression('/\x1b\[\d+;\d+H/', $rec->concatenated());
+        foreach ($frames as $frame) {
+            $this->assertStringStartsWith("\033_G", $frame);
+        }
     }
 
     public function testUnknownPaneRejected(): void

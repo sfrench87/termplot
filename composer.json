@@ -3,7 +3,7 @@
     "description": "PHP library for Kitty graphics — CLI charting and terminal dashboards",
     "type": "library",
     "keywords": ["terminal", "kitty", "graphics", "cli", "chart", "dashboard"],
-    "license": "proprietary",
+    "license": "MIT",
     "require": {
         "php": ">=8.2"
     },

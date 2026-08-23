@@ -5,8 +5,14 @@ PHP library for Kitty graphics — CLI charting and terminal dashboards (Compose
 > **Packagist vendor is TBD.** The Composer name `tbd/termplot` is an interim placeholder
 > and **MUST NOT be published** to Packagist until Gendo/Eden freeze a vendor.
 
-Primary graphics path: **Kitty** (Ghostty-compatible). Braille + table fallbacks and GD
-Line/Bar charts are stubbed for Willow. Final README marketing copy is Willow’s.
+Primary graphics path: **Kitty** (Ghostty-compatible), detected via the graphics
+protocol query. Env heuristics are secondary and only for Kitty/Ghostty
+(`KITTY_WINDOW_ID`, `TERM_PROGRAM=kitty|ghostty`). **WezTerm is caveat-only (D7)**
+and does not enable `kitty=true` from environment variables alone. Braille + table
+fallbacks and GD Line/Bar charts are stubbed for Willow. Final README marketing
+copy is Willow’s.
+
+License: **MIT**. Packagist vendor remains TBD — do not publish.
 
 ## Requirements
 
