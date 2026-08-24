@@ -1,0 +1,42 @@
+{
+    "name": "tbd/termplot",
+    "description": "PHP library for Kitty graphics — CLI charting and terminal dashboards",
+    "type": "library",
+    "keywords": ["terminal", "kitty", "graphics", "cli", "chart", "dashboard"],
+    "license": "MIT",
+    "require": {
+        "php": ">=8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Termplot\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Termplot\\Tests\\": "tests/"
+        }
+    },
+    "suggest": {
+        "ext-gd": "Optional; LineChart/BarChart rendering is Willow's concern and is not implemented in v0.1 core.",
+        "ext-zlib": "Optional; enables Kitty o=z zlib compression of payloads.",
+        "ext-posix": "Optional; posix_isatty fallback for TTY detection."
+    },
+    "extra": {
+        "termplot": {
+            "packagist_vendor": "TBD",
+            "do_not_publish": true,
+            "note": "Packagist vendor is TBD. This package MUST NOT be published to Packagist."
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {}
+    }
+}

@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  phpunit:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ["8.2", "8.3", "8.4"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          # ext-gd is Willow's concern; core tests must pass without it.
+          extensions: mbstring, xml, zip
+
+      - name: Validate composer.json (do not publish)
+        run: composer validate --no-check-publish --no-check-lock
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: PHPUnit (no TTY / without KITTY_TEST)
+        run: vendor/bin/phpunit
+        env:
+          KITTY_TEST: "0"
