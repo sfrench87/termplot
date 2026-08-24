@@ -23,8 +23,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           coverage: none
-          # ext-gd is Willow's concern; core tests must pass without it.
-          extensions: mbstring, xml, zip
+          extensions: mbstring, xml, zip, gd
 
       - name: Validate composer.json (do not publish)
         run: composer validate --no-check-publish --no-check-lock

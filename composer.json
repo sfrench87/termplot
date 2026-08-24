@@ -21,7 +21,7 @@
         }
     },
     "suggest": {
-        "ext-gd": "Optional; LineChart/BarChart rendering is Willow's concern and is not implemented in v0.1 core.",
+        "ext-gd": "Optional; enables LineChart/BarChart PNG rendering on the Kitty path.",
         "ext-zlib": "Optional; enables Kitty o=z zlib compression of payloads.",
         "ext-posix": "Optional; posix_isatty fallback for TTY detection."
     },

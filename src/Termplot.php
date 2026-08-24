@@ -14,7 +14,7 @@ use Termplot\Probe\ProbeInterface;
 use Termplot\Probe\TerminalProbe;
 use Termplot\Protocol\PlacementId;
 use Termplot\Render\ChartRendererInterface;
-use Termplot\Render\NullRenderer;
+use Termplot\Render\Gd\GdRenderer;
 use Termplot\Transmit\KittyTransmitter;
 use Termplot\Transmit\TransmitterInterface;
 
@@ -22,7 +22,7 @@ use Termplot\Transmit\TransmitterInterface;
  * Thin facade (D5, A11). Probes, then walks the capability ladder:
  * Kitty → (future backends) → Braille → Table.
  *
- * Chart bodies and Braille/Table rendering are Willow-owned stubs.
+ * GD charts (when ext-gd is loaded), then Braille, then table.
  *
  * Sketch: {@code Termplot::line($series)->width(800)->height(240)->draw()}
  */
@@ -39,6 +39,9 @@ final class Termplot
     private static ?TableFallbackInterface $table = null;
 
     private static ?ImageIdAllocator $ids = null;
+
+    /** @var array<string, int> Reused Kitty image ids per chart kind (live updates). */
+    private static array $imageIdsByKind = [];
 
     private static mixed $input = null;
 
@@ -109,6 +112,7 @@ final class Termplot
         self::$braille = null;
         self::$table = null;
         self::$ids = null;
+        self::$imageIdsByKind = [];
         self::$input = null;
         self::$output = null;
     }
@@ -157,17 +161,18 @@ final class Termplot
             ? self::$probe->detect($input, $output)
             : TerminalProbe::detect($input, $output);
 
-        $renderer = self::$renderer ?? new NullRenderer();
+        $renderer = self::$renderer ?? new GdRenderer();
 
         if ($cap->kitty && $renderer->isAvailable()) {
             $bitmap = $this->kind === 'bar'
                 ? $renderer->bar($this->series, $this->width, $this->height)
                 : $renderer->line($this->series, $this->width, $this->height);
-            $ids = self::$ids ?? new ImageIdAllocator();
+            $ids = self::$ids ??= new ImageIdAllocator();
+            $imageId = self::$imageIdsByKind[$this->kind] ??= $ids->next();
             $tx = self::$transmitter ?? new KittyTransmitter(
                 $output ?? fopen('php://output', 'w'),
             );
-            $tx->replace($bitmap, new PlacementId($ids->next(), placementId: 1), z: -1, cursorMove: false);
+            $tx->replace($bitmap, new PlacementId($imageId, placementId: 1), z: -1, cursorMove: false);
 
             return;
         }
@@ -178,26 +183,21 @@ final class Termplot
     private function drawFallback(): void
     {
         $out = self::$output ?? (defined('STDOUT') ? STDOUT : fopen('php://output', 'w'));
+        $cells = max(8, intdiv($this->width, 20));
+        $rows = max(1, intdiv($this->height, 30));
         $braille = self::$braille ?? new BrailleSparkline();
         try {
-            fwrite($out, $braille->render($this->series, max(8, intdiv($this->width, 20)), max(1, intdiv($this->height, 30))));
+            $text = $braille->render($this->series, $cells, $rows);
+            if ($text !== '') {
+                fwrite($out, $text);
 
-            return;
+                return;
+            }
         } catch (NotImplementedException) {
             // Ladder: Braille → Table.
         }
 
         $table = self::$table ?? new TableFallback();
-        try {
-            fwrite($out, $table->render($this->series));
-
-            return;
-        } catch (NotImplementedException $e) {
-            throw new NotImplementedException(
-                'Capability ladder reached Braille/Table stubs (Willow). Kitty charts need a ChartRendererInterface (GD, Willow).',
-                0,
-                $e,
-            );
-        }
+        fwrite($out, $table->render($this->series));
     }
 }
