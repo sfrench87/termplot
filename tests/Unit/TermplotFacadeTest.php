@@ -6,13 +6,13 @@ namespace Termplot\Tests\Unit;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use Termplot\Exception\NotImplementedException;
 use Termplot\Fallback\BrailleSparkline;
 use Termplot\Fallback\TableFallback;
 use Termplot\Probe\Capability;
 use Termplot\Probe\FakeProbe;
 use Termplot\Protocol\RecordingWriter;
 use Termplot\Render\Bitmap;
+use Termplot\Render\NullRenderer;
 use Termplot\Termplot;
 use Termplot\Tests\Support\ApcParser;
 use Termplot\Tests\Support\FakeBraille;
@@ -63,14 +63,61 @@ final class TermplotFacadeTest extends TestCase
         fclose($sink);
     }
 
-    public function testStubsThrowWhenNoWillowBodies(): void
+    public function testA7NotKittyPathYieldsBrailleWithoutApc(): void
     {
+        $sink = fopen('php://memory', 'r+');
+        $this->assertIsResource($sink);
         Termplot::bind(
             probe: new FakeProbe(new Capability(false, null, null, null, null, false)),
-            output: fopen('php://memory', 'r+'),
+            output: $sink,
         );
 
-        $this->expectException(NotImplementedException::class);
-        Termplot::bar([1, 2])->width(10)->height(10)->draw();
+        Termplot::line([1, 2, 5, 3, 4])->width(800)->height(240)->draw();
+        rewind($sink);
+        $out = (string) stream_get_contents($sink);
+        fclose($sink);
+
+        $this->assertNotSame('', $out);
+        $this->assertStringNotContainsString("\033_G", $out);
+        $this->assertMatchesRegularExpression('/[\x{2800}-\x{28FF}]/u', $out);
+    }
+
+    public function testEmptyBrailleFallsThroughToTable(): void
+    {
+        $sink = fopen('php://memory', 'r+');
+        $this->assertIsResource($sink);
+        Termplot::bind(
+            probe: new FakeProbe(new Capability(false, null, null, null, null, false)),
+            braille: new FakeBraille(''),
+            output: $sink,
+        );
+
+        Termplot::line([4, 8, 2])->draw();
+        rewind($sink);
+        $out = (string) stream_get_contents($sink);
+        fclose($sink);
+
+        $this->assertStringContainsString('idx', $out);
+        $this->assertStringContainsString('4', $out);
+        $this->assertStringNotContainsString("\033_G", $out);
+    }
+
+    public function testKittyWithoutRendererFallsBackToBraille(): void
+    {
+        $sink = fopen('php://memory', 'r+');
+        $this->assertIsResource($sink);
+        Termplot::bind(
+            probe: new FakeProbe(new Capability(true, 800, 600, 80, 24, true)),
+            renderer: new NullRenderer(),
+            output: $sink,
+        );
+
+        Termplot::line([1, 2, 3])->draw();
+        rewind($sink);
+        $out = (string) stream_get_contents($sink);
+        fclose($sink);
+
+        $this->assertNotSame('', $out);
+        $this->assertStringNotContainsString("\033_G", $out);
     }
 }
