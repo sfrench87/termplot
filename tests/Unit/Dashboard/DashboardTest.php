@@ -59,4 +59,27 @@ final class DashboardTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $dash->tick(['missing' => Bitmap::png(TinyPng::bytes())]);
     }
+
+    public function testPaintChromeWritesCupAndTitlesNotApc(): void
+    {
+        $tx = new RecordingWriter();
+        $chrome = new RecordingWriter();
+        $dash = Dashboard::create(new KittyTransmitter($tx), new ImageIdAllocator())
+            ->withChrome($chrome)
+            ->pane('throughput', cellRect: [0, 0, 20, 6]);
+
+        $dash->paintChrome();
+        $text = $chrome->concatenated();
+        $this->assertStringContainsString("\033[", $text);
+        $this->assertMatchesRegularExpression('/\x1b\[\d+;\d+H/', $text);
+        $this->assertStringContainsString('throughput', $text);
+        $this->assertStringNotContainsString("\033_G", $text);
+        $this->assertSame([], $tx->frames());
+
+        $dash->tick(['throughput' => Bitmap::png(TinyPng::bytes())]);
+        $this->assertDoesNotMatchRegularExpression('/\x1b\[\d+;\d+H/', $tx->concatenated());
+        $this->assertNotEmpty($tx->frames());
+        $this->assertStringStartsWith("\033_G", $tx->frames()[0]);
+        $this->assertMatchesRegularExpression('/\x1b\[\d+;\d+H/', $chrome->concatenated());
+    }
 }

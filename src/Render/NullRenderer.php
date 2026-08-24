@@ -7,7 +7,8 @@ namespace Termplot\Render;
 use Termplot\Exception\NotImplementedException;
 
 /**
- * Stub chart renderer used until Willow implements GD LineChart/BarChart.
+ * Unavailable renderer for tests and hosts without a chart backend.
+ * Production defaults to {@see \Termplot\Render\Gd\GdRenderer}.
  */
 final class NullRenderer implements ChartRendererInterface
 {
@@ -19,14 +20,14 @@ final class NullRenderer implements ChartRendererInterface
     public function line(array $series, int $width, int $height): Bitmap
     {
         throw new NotImplementedException(
-            'LineChart rendering requires GD and is owned by Willow; not implemented in v0.1 core.'
+            'LineChart rendering is unavailable; bind a ChartRendererInterface or enable ext-gd (GdRenderer).'
         );
     }
 
     public function bar(array $series, int $width, int $height): Bitmap
     {
         throw new NotImplementedException(
-            'BarChart rendering requires GD and is owned by Willow; not implemented in v0.1 core.'
+            'BarChart rendering is unavailable; bind a ChartRendererInterface or enable ext-gd (GdRenderer).'
         );
     }
 }
